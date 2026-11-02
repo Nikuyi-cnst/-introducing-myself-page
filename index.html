@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#11142f" />
+    <link rel="icon" href="data:," />
+    <title>나의 꿈속 극장</title>
+    <style>
+      @font-face {
+        font-family: "ONE Mobile POP";
+        src: url("assets/fonts/ONE-Mobile-POP.ttf") format("truetype");
+        font-display: swap;
+      }
+
+      :root {
+        color-scheme: dark;
+        --ink: #f5f2ff;
+        --muted: #c1c3e1;
+        --lavender: #a9adff;
+        --blue: #a6c8ff;
+        --scene-art: none; /* 배경 이미지 추가: url("assets/background.webp") */
+        font-family: "ONE Mobile POP", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background: #11142f;
+        color: var(--ink);
+      }
+
+      button {
+        color: inherit;
+        font: inherit;
+      }
+
+      .screen {
+        position: relative;
+        display: grid;
+        min-height: 100svh;
+        overflow: hidden;
+        isolation: isolate;
+        background-color: #11142f;
+        background-image:
+          linear-gradient(180deg, rgba(14, 17, 44, 0.28), rgba(17, 20, 47, 0.12) 48%, rgba(12, 14, 37, 0.5)),
+          var(--scene-art),
+          radial-gradient(ellipse at 50% 45%, #6976b6 0%, #333b72 32%, #1c204b 68%, #11142f 100%);
+        background-position: center;
+        background-size: cover;
+      }
+
+      .screen::before {
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        background-image:
+          radial-gradient(2px 2px at 12% 18%, #fff 50%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 23% 68%, #dce5ff 50%, transparent 100%),
+          radial-gradient(2px 2px at 38% 27%, #fff 50%, transparent 100%),
+          radial-gradient(1px 1px at 71% 21%, #fff 50%, transparent 100%),
+          radial-gradient(2px 2px at 83% 63%, #e8dfff 50%, transparent 100%),
+          radial-gradient(1px 1px at 91% 35%, #fff 50%, transparent 100%);
+        background-size: 290px 240px, 360px 330px, 420px 360px, 310px 280px, 390px 320px, 300px 350px;
+        content: "";
+        opacity: 0.72;
+        pointer-events: none;
+      }
+
+      .screen[hidden] {
+        display: none;
+      }
+
+      .page-transition {
+        position: fixed;
+        z-index: 5;
+        inset: 0;
+        visibility: hidden;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse at center, rgba(179, 214, 255, 0.72), transparent 58%),
+          linear-gradient(135deg, rgba(94, 111, 201, 0.96), rgba(20, 25, 68, 0.98));
+      }
+
+      .brand {
+        position: absolute;
+        top: clamp(18px, 4vh, 38px);
+        left: clamp(18px, 4vw, 48px);
+        color: rgba(245, 242, 255, 0.82);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.16em;
+      }
+
+      .stage {
+        position: relative;
+        width: min(100vw, 177.78vh);
+        min-height: min(100svh, 56.25vw);
+        margin: auto;
+      }
+
+      .character-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: grid;
+        width: 43%;
+        height: 74%;
+        place-items: center;
+        border: 0;
+        border-radius: 48%;
+        background: transparent;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+      }
+
+      .character-art {
+        position: relative;
+        width: 100%;
+        height: 84%;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 24px rgba(12, 14, 37, 0.3));
+        animation: character-float 4s ease-in-out infinite;
+      }
+
+      .character-label {
+        position: absolute;
+        right: 4%;
+        bottom: 1%;
+        left: 4%;
+        display: flex;
+        justify-content: center;
+        font-size: clamp(27px, 3.7vw, 44px);
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        white-space: nowrap;
+        filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.62));
+      }
+
+      .character-label span,
+      .bubble-label span {
+        display: inline-block;
+        background: linear-gradient(180deg, #97d2ff 0%, #4e74ff 100%);
+        background-clip: text;
+        color: transparent;
+        animation: letter-bob 2.2s ease-in-out infinite;
+        animation-delay: calc(var(--i) * 90ms);
+        transform-origin: center bottom;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter:
+          drop-shadow(1px 0 0 #4e5aff)
+          drop-shadow(-1px 0 0 #4e5aff)
+          drop-shadow(0 1px 0 #4e5aff)
+          drop-shadow(0 -1px 0 #4e5aff);
+      }
+
+      button:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 6px;
+      }
+
+      .bubble {
+        position: absolute;
+        z-index: 2;
+        display: block;
+        width: clamp(180px, 22vw, 260px);
+        aspect-ratio: 1.26;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #302f33;
+        cursor: pointer;
+      }
+
+      .cloud-art {
+        position: absolute;
+        top: 7%;
+        left: 7%;
+        width: 86%;
+        height: 86%;
+        overflow: visible;
+        object-fit: contain;
+        filter: drop-shadow(0 5px 5px rgba(14, 18, 54, 0.3));
+        transition: filter 180ms ease;
+      }
+
+      .bubble:hover .cloud-art,
+      .bubble:focus-visible .cloud-art {
+        filter: drop-shadow(0 9px 13px rgba(179, 199, 255, 0.62)) brightness(1.08);
+      }
+
+      .bubble-label {
+        position: absolute;
+        right: 4%;
+        bottom: 1%;
+        left: 4%;
+        display: block;
+        font-size: clamp(23px, 3.2vw, 38px);
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.62));
+      }
+
+      .bubble-about .bubble-label {
+        bottom: -15%;
+        font-size: clamp(28px, 4vw, 44px);
+        line-height: 1.05;
+      }
+
+      .bubble-about {
+        top: 13%;
+        left: 10%;
+      }
+
+      .bubble-favorites {
+        top: 37%;
+        right: 10%;
+      }
+
+      .bubble-contact {
+        bottom: 11%;
+        left: 7%;
+      }
+
+      .mute-toggle {
+        position: fixed;
+        z-index: 3;
+        right: clamp(16px, 3vw, 32px);
+        bottom: clamp(16px, 3vw, 28px);
+        min-height: 44px;
+        padding: 0 15px;
+        border: 1px solid rgba(226, 225, 255, 0.4);
+        border-radius: 999px;
+        background: rgba(30, 35, 82, 0.65);
+        color: var(--ink);
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+      }
+
+      .mute-toggle:hover {
+        background: rgba(80, 91, 163, 0.85);
+      }
+
+      .intro-content {
+        display: grid;
+        width: min(720px, calc(100% - 40px));
+        min-height: 100svh;
+        align-content: center;
+        justify-items: center;
+        margin: auto;
+        padding: 80px 0;
+        text-align: center;
+      }
+
+      .intro-content h1,
+      .section-content h1 {
+        margin: 0 0 16px;
+        font-size: clamp(34px, 6vw, 64px);
+        letter-spacing: -0.07em;
+      }
+
+      .intro-content p,
+      .section-content p {
+        max-width: 480px;
+        margin: 0;
+        color: var(--muted);
+        font-size: clamp(15px, 2vw, 18px);
+        line-height: 1.9;
+        white-space: pre-line;
+      }
+
+      .section-content {
+        display: grid;
+        width: min(560px, calc(100% - 40px));
+        min-height: 100svh;
+        align-content: center;
+        justify-items: center;
+        margin: auto;
+        text-align: center;
+      }
+
+      .back-button {
+        position: absolute;
+        z-index: 2;
+        top: 24px;
+        right: 24px;
+        min-height: 42px;
+        padding: 0 17px;
+        border: 1px solid rgba(226, 225, 255, 0.4);
+        border-radius: 999px;
+        background: rgba(30, 35, 82, 0.55);
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+      }
+
+      .back-button:hover {
+        background: rgba(80, 91, 163, 0.8);
+      }
+
+      @keyframes character-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-9px); }
+      }
+
+      @keyframes letter-bob {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        28% { transform: translateY(-5px) rotate(-3deg); }
+        56% { transform: translateY(2px) rotate(2deg); }
+      }
+
+      .mute-toggle[aria-pressed="true"] {
+        border-color: rgba(192, 204, 255, 0.8);
+        box-shadow: 0 0 22px rgba(154, 174, 255, 0.3);
+      }
+
+      @media (max-aspect-ratio: 1/1) {
+        .stage {
+          width: 100%;
+          min-height: 100svh;
+        }
+
+        .character-button {
+          top: 50%;
+          width: 64%;
+          height: 54%;
+        }
+
+        .bubble {
+          width: clamp(150px, 34vw, 190px);
+        }
+
+        .bubble-about {
+          top: 5%;
+          left: 1.5%;
+        }
+
+        .bubble-favorites {
+          top: 37%;
+          right: 1.5%;
+        }
+
+        .bubble-contact {
+          bottom: 13%;
+          left: 1.5%;
+        }
+
+        .bubble-label {
+          font-size: clamp(21px, 7vw, 31px);
+        }
+
+        .mute-toggle {
+          right: 12px;
+          bottom: 12px;
+          min-height: 40px;
+          padding-inline: 12px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="screen" id="title-screen" aria-label="꿈속 자기소개 극장">
+        <div class="brand">MY DREAM THEATER</div>
+        <div class="stage">
+          <button class="character-button" type="button" data-page="intro" aria-label="꿈속 은하수들">
+            <img class="character-art" src="assets/character-temp.png" alt="" />
+            <span class="character-label" data-label="꿈속 은하수들">꿈속 은하수들</span>
+          </button>
+          <button class="bubble bubble-about" type="button" data-page="about" aria-label="디스코드, 봇 위키">
+            <img class="cloud-art" src="assets/buttons/about.svg" alt="" />
+            <span class="bubble-label" data-label="디스코드&#10;봇 위키">디스코드<br />봇 위키</span>
+          </button>
+          <button class="bubble bubble-favorites" type="button" data-page="favorites" aria-label="크레딧">
+            <img class="cloud-art" src="assets/buttons/favorites.svg" alt="" />
+            <span class="bubble-label" data-label="크레딧">크레딧</span>
+          </button>
+          <button class="bubble bubble-contact" type="button" data-page="contact" aria-label="활동지역">
+            <img class="cloud-art" src="assets/buttons/contact.svg" alt="" />
+            <span class="bubble-label" data-label="활동지역">활동지역</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="screen" id="intro-screen" aria-label="메인 자기소개" hidden>
+        <button class="back-button" type="button" data-back>돌아가기</button>
+        <div class="intro-content">
+          <p>MY LITTLE STORY</p>
+          <h1>꿈속 은하수들</h1>
+          <p>이곳에 이름과 자기소개를 적어주세요.<br />나만의 이미지와 이야기를 넣을 자리입니다.</p>
+        </div>
+      </section>
+
+      <section class="screen" id="section-screen" aria-label="소개 내용" hidden>
+        <button class="back-button" type="button" data-back>돌아가기</button>
+        <div class="section-content">
+          <p id="section-kicker"></p>
+          <h1 id="section-title"></h1>
+          <p id="section-copy"></p>
+        </div>
+      </section>
+    </main>
+
+    <div class="page-transition" aria-hidden="true"></div>
+
+    <!-- 직접 사용 권한이 있는 음원 파일을 assets/background-music.mp3 경로에 넣으세요. -->
+    <audio id="background-music" src="assets/background-music.mp3" loop autoplay preload="auto"></audio>
+    <button class="mute-toggle" type="button" aria-pressed="false" aria-label="음소거 켜기">소리 끄기</button>
+
+    <script>
+      const sections = {
+        about: {
+          kicker: "STORY",
+          title: "디스코드 봇 위키",
+          copy: "이곳에 나를 소개하는 내용을 적어주세요."
+        },
+        favorites: {
+          kicker: "CREDITS",
+          title: "크레딧",
+          copy: "좋아하는 취미, 음악, 음식, 작품을 소개해 보세요."
+        },
+        contact: {
+          kicker: "LOCATION",
+          title: "활동지역",
+          copy: "이곳에 이메일이나 SNS 링크를 추가해 주세요."
+        }
+      };
+
+      const screens = {
+        intro: document.querySelector("#intro-screen"),
+        section: document.querySelector("#section-screen")
+      };
+      const titleScreen = document.querySelector("#title-screen");
+      const transitionOverlay = document.querySelector(".page-transition");
+      let isTransitioning = false;
+
+      async function transitionTo(nextScreen, trigger) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        const currentScreen = document.querySelector(".screen:not([hidden])");
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (reducedMotion) {
+          currentScreen.hidden = true;
+          nextScreen.hidden = false;
+          isTransitioning = false;
+          return;
+        }
+
+        const bounds = trigger.getBoundingClientRect();
+        const originX = bounds.left + bounds.width / 2;
+        const originY = bounds.top + bounds.height / 2;
+        transitionOverlay.style.visibility = "visible";
+        const outgoingItems = getTransitionItems(currentScreen);
+        const outgoingAnimations = outgoingItems.map((item, index) =>
+          item.animate(
+            [
+              { opacity: 1, translate: "0 0" },
+              {
+                opacity: 0,
+                translate: "0 -42px",
+                offset: 1
+              }
+            ],
+            {
+              duration: 500,
+              delay: index * 55,
+              easing: "ease-in",
+              fill: "forwards"
+            }
+          )
+        );
+
+        const cover = transitionOverlay.animate(
+          [
+            { clipPath: `circle(0px at ${originX}px ${originY}px)` },
+            { clipPath: `circle(150vmax at ${originX}px ${originY}px)` }
+          ],
+          { duration: 620, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" }
+        );
+
+        try {
+          await Promise.all([cover.finished, ...outgoingAnimations.map((animation) => animation.finished)]);
+          currentScreen.hidden = true;
+          nextScreen.hidden = false;
+          outgoingAnimations.forEach((animation) => animation.cancel());
+
+          const reveal = transitionOverlay.animate(
+            [{ opacity: 1 }, { opacity: 0 }],
+            { duration: 560, easing: "ease-out", fill: "forwards" }
+          );
+          const incomingAnimations = getTransitionItems(nextScreen).map((item, index) =>
+            item.animate(
+              [
+                {
+                  opacity: 0,
+                  translate: "0 -42px",
+                  filter: "blur(5px)"
+                },
+                { opacity: 1, translate: "0 0", filter: "blur(0)" }
+              ],
+              {
+                duration: 560,
+                delay: index * 55,
+                easing: "ease-out",
+                fill: "both"
+              }
+            )
+          );
+          await Promise.all([reveal.finished, ...incomingAnimations.map((animation) => animation.finished)]);
+          reveal.cancel();
+          incomingAnimations.forEach((animation) => animation.cancel());
+        } finally {
+          cover.cancel();
+          outgoingAnimations.forEach((animation) => animation.cancel());
+          transitionOverlay.style.visibility = "hidden";
+          isTransitioning = false;
+        }
+      }
+
+      const labels = [...document.querySelectorAll(".bubble-label, .character-label")];
+
+      function renderLabels() {
+        labels.forEach((label) => {
+          let index = 0;
+          const lines = label.dataset.label.split("\n");
+          label.replaceChildren(...lines.flatMap((line, lineIndex) => [
+            ...(lineIndex > 0 ? [document.createElement("br")] : []),
+            ...Array.from(line, (character) => {
+              const letter = document.createElement("span");
+              letter.textContent = character === " " ? "\u00a0" : character;
+              letter.style.setProperty("--i", index);
+              index += 1;
+              return letter;
+            })
+          ]));
+        });
+      }
+
+      renderLabels();
+
+      function getTransitionItems(screen) {
+        if (screen.id === "title-screen") {
+          return [...screen.querySelector(".stage").children];
+        }
+
+        const content = screen.querySelector(".intro-content, .section-content");
+        return [screen.querySelector(".back-button"), ...content.children].filter(Boolean);
+      }
+
+      document.querySelectorAll("[data-page]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const page = button.dataset.page;
+
+          if (page === "intro") {
+            await transitionTo(screens.intro, button);
+            return;
+          }
+
+          const content = sections[page];
+          document.querySelector("#section-kicker").textContent = content.kicker;
+          document.querySelector("#section-title").textContent = content.title;
+          document.querySelector("#section-copy").textContent = content.copy;
+          await transitionTo(screens.section, button);
+        });
+      });
+
+      document.querySelectorAll("[data-back]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          await transitionTo(titleScreen, button);
+        });
+      });
+
+      const music = document.querySelector("#background-music");
+      const muteToggle = document.querySelector(".mute-toggle");
+      music.volume = 0.2;
+
+      music.play().catch(() => {
+        muteToggle.textContent = "재생하려면 눌러주세요";
+        muteToggle.setAttribute("aria-label", "배경음악 재생");
+      });
+
+      muteToggle.addEventListener("click", async () => {
+        if (music.paused) {
+          try {
+            await music.play();
+            music.muted = false;
+          } catch {
+            muteToggle.textContent = "음원 파일을 확인해 주세요";
+            return;
+          }
+        } else {
+          music.muted = !music.muted;
+        }
+
+        muteToggle.textContent = music.muted ? "소리 켜기" : "소리 끄기";
+        muteToggle.setAttribute("aria-label", music.muted ? "음소거 해제" : "음소거 켜기");
+        muteToggle.setAttribute("aria-pressed", String(music.muted));
+      });
+    </script>
+  </body>
+</html>
