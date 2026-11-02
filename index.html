@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#11142f" />
     <link rel="icon" href="data:," />
+    <link rel="preload" href="assets/fonts/ONE-Mobile-POP.woff2" as="font" type="font/woff2" crossorigin />
     <title>나의 꿈속 극장</title>
     <style>
       @font-face {
         font-family: "ONE Mobile POP";
-        src: url("assets/fonts/ONE-Mobile-POP.ttf") format("truetype");
+        src:
+          url("assets/fonts/ONE-Mobile-POP.woff2") format("woff2"),
+          url("assets/fonts/ONE-Mobile-POP.ttf") format("truetype");
         font-display: swap;
       }
 
@@ -17,8 +20,6 @@
         color-scheme: dark;
         --ink: #f5f2ff;
         --muted: #c1c3e1;
-        --lavender: #a9adff;
-        --blue: #a6c8ff;
         --scene-art: none; /* 배경 이미지 추가: url("assets/background.webp") */
         font-family: "ONE Mobile POP", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       }
@@ -154,11 +155,7 @@
         transform-origin: center bottom;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        filter:
-          drop-shadow(1px 0 0 #4e5aff)
-          drop-shadow(-1px 0 0 #4e5aff)
-          drop-shadow(0 1px 0 #4e5aff)
-          drop-shadow(0 -1px 0 #4e5aff);
+        -webkit-text-stroke: 1px #4e5aff;
       }
 
       button:focus-visible {
@@ -384,7 +381,15 @@
         <div class="brand">MY DREAM THEATER</div>
         <div class="stage">
           <button class="character-button" type="button" data-page="intro" aria-label="꿈속 은하수들">
-            <img class="character-art" src="assets/character-temp.png" alt="" />
+            <img
+              class="character-art"
+              src="assets/character-temp.png"
+              width="600"
+              height="612"
+              fetchpriority="high"
+              decoding="async"
+              alt=""
+            />
             <span class="character-label" data-label="꿈속 은하수들">꿈속 은하수들</span>
           </button>
           <button class="bubble bubble-about" type="button" data-page="about" aria-label="디스코드, 봇 위키">
@@ -595,6 +600,10 @@
       const music = document.querySelector("#background-music");
       const muteToggle = document.querySelector(".mute-toggle");
       music.volume = 0.2;
+
+      music.addEventListener("error", () => {
+        muteToggle.hidden = true;
+      }, { once: true });
 
       music.play().catch(() => {
         muteToggle.textContent = "재생하려면 눌러주세요";
